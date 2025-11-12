@@ -6,12 +6,12 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createApp, h } from 'vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { library } from '@fortawesome/fontawesome-svg-core';
-import { faUser, faUserPlus, faLock, faEnvelope, faKey, faPaperPlane, faEye, faEyeSlash, faUserPen, faUserXmark, faArrowLeft, faSpinner, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
+import { faUser, faUserPlus, faLock, faEnvelope, faKey, faPaperPlane, faEye, faEyeSlash, faUserPen, faUserXmark, faArrowLeft, faSpinner, faFloppyDisk, faListCheck, faPlus, faCircleInfo, faCheckCircle, faClock, faCalendarDays, faPenToSquare, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 
 
-// Registrar los íconos usados en los formularios
-library.add(faUser, faUserPlus, faLock, faEnvelope, faKey, faPaperPlane, faEye, faEyeSlash, faUserPen, faUserXmark, faArrowLeft, faSpinner, faFloppyDisk);
+// Registrar los íconos usados en los formularios y vistas
+library.add(faUser, faUserPlus, faLock, faEnvelope, faKey, faPaperPlane, faEye, faEyeSlash, faUserPen, faUserXmark, faArrowLeft, faSpinner, faFloppyDisk, faListCheck, faPlus, faCircleInfo, faCheckCircle, faClock, faCalendarDays, faPenToSquare, faTrash);
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 

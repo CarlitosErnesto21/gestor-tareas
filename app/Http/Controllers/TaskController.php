@@ -1,10 +1,7 @@
 <?php
 
-
 namespace App\Http\Controllers;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-
-
 use App\Models\Task;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -13,11 +10,18 @@ use Inertia\Inertia;
 class TaskController extends Controller
 {
     use AuthorizesRequests;
-    public function index()
+
+    public function index(Request $request)
     {
-        $tasks = Task::where('user_id', Auth::id())->get();
+        $status = $request->query('status');
+        $query = Task::where('user_id', Auth::id());
+        if ($status && in_array($status, ['pendiente', 'en_progreso', 'completada'])) {
+            $query->where('status', $status);
+        }
+        $tasks = $query->get();
         return Inertia::render('Tasks/Index', [
             'tasks' => $tasks,
+            'filterStatus' => $status,
         ]);
     }
 
@@ -73,5 +77,14 @@ class TaskController extends Controller
         $this->authorize('delete', $task);
         $task->delete();
         return redirect()->route('tasks.index')->with('success', 'Tarea eliminada correctamente.');
+    }
+    public function updateStatus(Request $request, Task $task)
+    {
+        $this->authorize('update', $task);
+        $validated = $request->validate([
+            'status' => 'required|in:pendiente,en_progreso,completada',
+        ]);
+        $task->update(['status' => $validated['status']]);
+        return redirect()->route('tasks.index')->with('success', 'Estado actualizado correctamente.');
     }
 }

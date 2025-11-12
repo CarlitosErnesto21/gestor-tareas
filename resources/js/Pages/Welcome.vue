@@ -101,8 +101,23 @@ function handleImageError() {
                         </Link>
                     </div>
             </div>
-            <div class="mt-10 text-center text-xs text-gray-500 dark:text-gray-400">
-                Laravel v{{ laravelVersion }} (PHP v{{ phpVersion }})
+            <div class="mt-10">
+                <div class="bg-gradient-to-r from-blue-100 via-fuchsia-100 to-cyan-100 dark:from-indigo-900 dark:via-blue-900 dark:to-gray-900 rounded-2xl shadow p-6 mb-6">
+                    <h3 class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-600 via-blue-500 to-cyan-400 dark:from-fuchsia-400 dark:via-blue-400 dark:to-cyan-300 mb-2 text-center">¿Qué puedes hacer aquí?</h3>
+                    <ul class="list-disc list-inside text-gray-700 dark:text-gray-200 text-base space-y-2">
+                        <li>Organiza tus tareas personales y laborales en un solo lugar.</li>
+                        <li>Establece fechas límite y visualiza el estado de cada tarea.</li>
+                        <li>Actualiza, elimina y marca tareas como completadas fácilmente.</li>
+                        <li>Tu información está protegida y solo tú puedes ver tus tareas.</li>
+                        <li>Interfaz moderna, rápida y adaptada a cualquier dispositivo.</li>
+                    </ul>
+                    <div class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                        ¡Empieza creando una cuenta o inicia sesión para gestionar tus pendientes!
+                    </div>
+                </div>
+                <div class="text-center text-xs text-gray-500 dark:text-gray-400">
+                    Laravel v{{ laravelVersion }} (PHP v{{ phpVersion }})
+                </div>
             </div>
         </div>
     </div>

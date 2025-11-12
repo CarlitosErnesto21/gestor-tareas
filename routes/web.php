@@ -41,6 +41,7 @@ Route::middleware('auth')->group(function () {
     })->name('profile.edit.delete');
 
     Route::resource('tasks', TaskController::class);
+    Route::patch('tasks/{task}/status', [TaskController::class, 'updateStatus'])->name('tasks.updateStatus');
 });
 
 require __DIR__.'/auth.php';

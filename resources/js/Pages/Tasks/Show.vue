@@ -1,6 +1,8 @@
 
 <script setup>
+
 import { Head, Link } from '@inertiajs/vue3';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 
 defineProps({
@@ -15,14 +17,26 @@ defineProps({
     <Head :title="task.title" />
     <AuthenticatedLayout>
         <template #header>
-            <div class="flex justify-between items-center">
-                <h1 class="text-2xl font-bold text-gray-800 dark:text-white">{{ task.title }}</h1>
-                <Link :href="route('tasks.index')" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 transition">Volver</Link>
+            <div class="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center w-full">
+                <div class="flex items-center gap-2">
+                    <FontAwesomeIcon icon="fa-solid fa-eye" class="text-blue-600 dark:text-fuchsia-400 h-7 w-7 drop-shadow-lg" />
+                    <h1 class="text-2xl sm:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-fuchsia-500 to-cyan-400 dark:from-fuchsia-400 dark:via-blue-400 dark:to-cyan-300">Detalle de Tarea</h1>
+                </div>
+                <Link :href="route('tasks.index')" class="flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-blue-600 to-fuchsia-500 text-white font-bold rounded-xl shadow-lg hover:from-fuchsia-500 hover:to-blue-600 hover:scale-105 transition-all duration-200">
+                    <FontAwesomeIcon icon="fa-solid fa-list-check" class="text-white" />
+                    Volver
+                </Link>
             </div>
         </template>
-        <div class="w-full max-w-lg mx-auto bg-white dark:bg-gray-900 rounded-xl shadow-lg p-8 mt-6">
-            <div class="mb-4 text-gray-600 dark:text-gray-300">{{ task.description }}</div>
-            <div class="mb-2 text-sm text-gray-500 dark:text-gray-400">Fecha límite: {{ task.due_date || 'Sin fecha' }}</div>
+        <div class="w-full max-w-lg mx-auto bg-white/90 dark:bg-gray-900/90 rounded-3xl shadow-2xl p-8 mt-6 border-4 border-blue-400 dark:border-fuchsia-700 animate-fade-in">
+            <div class="mb-4 text-gray-600 dark:text-gray-300 text-lg font-semibold flex items-center gap-2">
+                <FontAwesomeIcon icon="fa-solid fa-list-check" class="text-fuchsia-600 dark:text-blue-400 h-5 w-5" />
+                {{ task.title }}
+            </div>
+            <div class="mb-2 text-gray-500 dark:text-gray-400 text-sm flex items-center gap-2">
+                <FontAwesomeIcon icon="fa-solid fa-calendar-days" class="text-blue-400" />
+                Fecha límite: {{ task.due_date || 'Sin fecha' }}
+            </div>
             <div class="mb-2 text-sm">
                 <span :class="{
                     'bg-yellow-100 text-yellow-800': task.status === 'pendiente',
@@ -32,8 +46,12 @@ defineProps({
                     {{ task.status.replace('_', ' ').toUpperCase() }}
                 </span>
             </div>
+            <div class="mb-4 text-gray-600 dark:text-gray-300">{{ task.description }}</div>
             <div class="flex gap-2 mt-6">
-                <Link :href="route('tasks.edit', task.id)" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Editar</Link>
+                <Link :href="route('tasks.edit', task.id)" class="flex items-center gap-2 px-5 py-2 bg-blue-600 text-white rounded-xl shadow hover:bg-blue-700 transition">
+                    <FontAwesomeIcon icon="fa-solid fa-pen-to-square" class="text-white" />
+                    Editar
+                </Link>
             </div>
         </div>
     </AuthenticatedLayout>
