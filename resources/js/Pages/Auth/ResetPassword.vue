@@ -17,12 +17,16 @@ const props = defineProps({
     },
 });
 
+
+import { ref } from 'vue';
 const form = useForm({
     token: props.token,
     email: props.email,
     password: '',
     password_confirmation: '',
 });
+const showPassword = ref(false);
+const showPasswordConfirmation = ref(false);
 
 const submit = () => {
     form.post(route('password.store'), {
@@ -34,14 +38,20 @@ const submit = () => {
 
 <template>
     <Head title="Restablecer contraseña" />
-    <div class="min-h-screen bg-gradient-to-br from-blue-50 to-blue-200 dark:from-gray-900 dark:to-gray-800 flex flex-col justify-center items-center">
-        <div class="w-full max-w-md bg-white dark:bg-gray-900 rounded-xl shadow-lg p-8 mt-12">
+    <div class="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-fuchsia-400 via-blue-400 to-cyan-300 dark:from-indigo-900 dark:via-blue-900 dark:to-gray-900 transition-colors duration-500">
+        <div class="w-full max-w-md bg-white/90 dark:bg-gray-900/90 rounded-3xl shadow-2xl p-8 mt-12 border-4 border-blue-400 dark:border-fuchsia-700">
             <div class="flex flex-col items-center mb-6">
-                <svg class="h-12 w-12 text-blue-500 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0-1.657 1.343-3 3-3s3 1.343 3 3-1.343 3-3 3-3-1.343-3-3zm0 0V7m0 8v-2m0 0H8m4 0h4" />
+                <svg class="h-14 w-14 text-fuchsia-600 dark:text-blue-400 mb-2 drop-shadow-lg animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <defs>
+                        <linearGradient id="icon-gradient-reset" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stop-color="#f472b6" />
+                            <stop offset="100%" stop-color="#3b82f6" />
+                        </linearGradient>
+                    </defs>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0-1.657 1.343-3 3-3s3 1.343 3 3-1.343 3-3 3-3-1.343-3-3zm0 0V7m0 8v-2m0 0H8m4 0h4" stroke="url(#icon-gradient-reset)" />
                 </svg>
-                <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Restablecer contraseña</h2>
-                <p class="text-gray-500 dark:text-gray-300 text-center text-sm mt-1">Ingresa tu nueva contraseña para tu cuenta</p>
+                <h2 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-600 via-blue-500 to-cyan-400 dark:from-fuchsia-400 dark:via-blue-400 dark:to-cyan-300 text-center">Restablecer contraseña</h2>
+                <p class="text-gray-700 dark:text-gray-200 text-center text-sm mt-1 font-medium">Ingresa tu nueva contraseña para tu cuenta</p>
             </div>
             <form @submit.prevent="submit" class="space-y-4">
                 <div>
@@ -59,35 +69,61 @@ const submit = () => {
                 </div>
                 <div>
                     <InputLabel for="password" value="Contraseña" />
-                    <TextInput
-                        id="password"
-                        type="password"
-                        class="mt-1 block w-full"
-                        v-model="form.password"
-                        required
-                        autocomplete="new-password"
-                    />
+                    <div class="relative">
+                        <TextInput
+                            id="password"
+                            :type="showPassword ? 'text' : 'password'"
+                            class="mt-1 block w-full pr-12"
+                            v-model="form.password"
+                            required
+                            autocomplete="new-password"
+                        />
+                        <button
+                            type="button"
+                            @click="showPassword = !showPassword"
+                            tabindex="-1"
+                            class="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-blue-500 dark:hover:text-fuchsia-400 focus:outline-none"
+                        >
+                            <FontAwesomeIcon :icon="showPassword ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'" />
+                        </button>
+                    </div>
                     <InputError class="mt-2" :message="form.errors.password" />
                 </div>
                 <div>
                     <InputLabel for="password_confirmation" value="Confirmar contraseña" />
-                    <TextInput
-                        id="password_confirmation"
-                        type="password"
-                        class="mt-1 block w-full"
-                        v-model="form.password_confirmation"
-                        required
-                        autocomplete="new-password"
-                    />
+                    <div class="relative">
+                        <TextInput
+                            id="password_confirmation"
+                            :type="showPasswordConfirmation ? 'text' : 'password'"
+                            class="mt-1 block w-full pr-12"
+                            v-model="form.password_confirmation"
+                            required
+                            autocomplete="new-password"
+                        />
+                        <button
+                            type="button"
+                            @click="showPasswordConfirmation = !showPasswordConfirmation"
+                            tabindex="-1"
+                            class="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-blue-500 dark:hover:text-fuchsia-400 focus:outline-none"
+                        >
+                            <FontAwesomeIcon :icon="showPasswordConfirmation ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'" />
+                        </button>
+                    </div>
                     <InputError class="mt-2" :message="form.errors.password_confirmation" />
                 </div>
-                <PrimaryButton
-                    class="w-full mt-2"
-                    :class="{ 'opacity-25': form.processing }"
+                <button
+                    type="submit"
+                    class="w-full flex items-center justify-center gap-2 px-8 py-3 bg-gradient-to-r from-blue-600 to-fuchsia-500 text-white font-bold rounded-xl shadow-lg hover:from-fuchsia-500 hover:to-blue-600 hover:scale-105 transition-all duration-200 text-lg mt-2 disabled:opacity-50"
                     :disabled="form.processing"
                 >
-                    Restablecer contraseña
-                </PrimaryButton>
+                    <FontAwesomeIcon icon="fa-solid fa-key" class="text-white text-xl" />
+                    <span v-if="!form.processing">Restablecer contraseña</span>
+                    <span v-else>Cargando...</span>
+                    <svg v-if="form.processing" class="animate-spin ml-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                    </svg>
+                </button>
             </form>
             <div class="mt-6 text-center text-xs text-gray-400 dark:text-gray-500">
                 &copy; {{ new Date().getFullYear() }} Gestor de Tareas

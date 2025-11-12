@@ -31,9 +31,33 @@ class RegisteredUserController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                // Solo letras, espacios y tildes, sin números ni signos especiales
+                'regex:/^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s]+$/u',
+            ],
+            'email' => [
+                'required',
+                'string',
+                'lowercase',
+                'email',
+                'max:255',
+                'unique:'.User::class,
+                // Estructura estricta: usuario@dominio.tld (solo letras, números, puntos, guiones y guion bajo en usuario y dominio)
+                'regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/',
+            ],
+            'password' => [
+                'required',
+                'confirmed',
+                // Mínimo 8, al menos una mayúscula, una minúscula, un número y un carácter especial
+                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!$#%&?@_"])[A-Za-z\d!$#%&?@_\"]{8,}$/',
+            ],
+        ], [
+            'name.regex' => 'El nombre solo puede contener letras y espacios (puede llevar tildes, sin números ni signos especiales).',
+            'email.regex' => 'El correo electrónico debe tener un formato válido (ejemplo: usuario@dominio.com).',
+            'password.regex' => 'La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial.',
         ]);
 
         $user = User::create([

@@ -24,6 +24,22 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    // Nuevas rutas para vistas separadas de perfil
+    Route::get('/profile/info', function () {
+        return Inertia::render('Profile/EditInfo', [
+            'mustVerifyEmail' => request()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail,
+            'status' => session('status'),
+        ]);
+    })->name('profile.edit.info');
+
+    Route::get('/profile/password', function () {
+        return Inertia::render('Profile/EditPassword');
+    })->name('profile.edit.password');
+
+    Route::get('/profile/delete', function () {
+        return Inertia::render('Profile/EditDelete');
+    })->name('profile.edit.delete');
+
     Route::resource('tasks', TaskController::class);
 });
 

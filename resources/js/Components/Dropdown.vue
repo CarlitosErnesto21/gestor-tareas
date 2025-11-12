@@ -12,7 +12,8 @@ const props = defineProps({
     },
     contentClasses: {
         type: String,
-        default: 'py-1 bg-white',
+        // Fondo translúcido, gradiente, sombra, padding, bordes redondeados
+        default: 'py-2 px-2 bg-white/90 dark:bg-gray-900/90 bg-gradient-to-br from-fuchsia-100 via-blue-100 to-cyan-100 dark:from-fuchsia-900 dark:via-blue-900 dark:to-cyan-900 shadow-2xl rounded-2xl border-2 border-blue-300 dark:border-fuchsia-700',
     },
 });
 
@@ -69,11 +70,8 @@ const open = ref(false);
                 v-show="open"
                 class="absolute z-50 mt-2 rounded-md shadow-lg"
                 :class="[widthClass, alignmentClasses]"
-                style="display: none"
-                @click="open = false"
             >
                 <div
-                    class="rounded-md ring-1 ring-black ring-opacity-5"
                     :class="contentClasses"
                 >
                     <slot name="content" />
