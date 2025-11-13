@@ -1,0 +1,5 @@
+# Ignore database operations during build
+*.sql
+*.db
+database/
+.env.example
