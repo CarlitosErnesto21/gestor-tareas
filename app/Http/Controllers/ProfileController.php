@@ -53,11 +53,12 @@ class ProfileController extends Controller
 
         Auth::logout();
 
+        // El onDelete('cascade') en la migración se encarga de eliminar automáticamente todas las tareas relacionadas
         $user->delete();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return Redirect::to('/');
+        return Redirect::to('/')->with('status', 'Cuenta eliminada exitosamente. Todos tus datos han sido borrados.');
     }
 }

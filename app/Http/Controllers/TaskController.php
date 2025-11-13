@@ -19,6 +19,20 @@ class TaskController extends Controller
             $query->where('status', $status);
         }
         $tasks = $query->get();
+
+        // Si la petición es parcial (Inertia partial reload)
+        if ($request->hasHeader('X-Inertia-Partial-Data')) {
+            $props = [];
+            $partial = explode(',', $request->header('X-Inertia-Partial-Data'));
+            if (in_array('tasks', $partial)) {
+                $props['tasks'] = $tasks;
+            }
+            if (in_array('filterStatus', $partial)) {
+                $props['filterStatus'] = $status;
+            }
+            return Inertia::render('Tasks/Index', $props);
+        }
+
         return Inertia::render('Tasks/Index', [
             'tasks' => $tasks,
             'filterStatus' => $status,
@@ -40,7 +54,7 @@ class TaskController extends Controller
         ]);
         $validated['user_id'] = Auth::id();
         Task::create($validated);
-        return redirect()->route('tasks.index');
+        return redirect()->route('tasks.index')->with('success', 'Tarea creada exitosamente.');
     }
 
     public function show(Task $task)
@@ -76,7 +90,9 @@ class TaskController extends Controller
     {
         $this->authorize('delete', $task);
         $task->delete();
-        return redirect()->route('tasks.index')->with('success', 'Tarea eliminada correctamente.');
+
+        // Respuesta vacía exitosa para Inertia DELETE
+        return response('', 200);
     }
     public function updateStatus(Request $request, Task $task)
     {
@@ -84,7 +100,11 @@ class TaskController extends Controller
         $validated = $request->validate([
             'status' => 'required|in:pendiente,en_progreso,completada',
         ]);
+
+        // Actualizar el estado de la tarea
         $task->update(['status' => $validated['status']]);
-        return redirect()->route('tasks.index')->with('success', 'Estado actualizado correctamente.');
+
+        // Respuesta vacía exitosa para Inertia PATCH
+        return response('', 200);
     }
 }

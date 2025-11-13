@@ -1,5 +1,6 @@
-
 <script setup>
+import { router } from '@inertiajs/vue3';
+import { ref, watch } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -16,11 +17,8 @@ const props = defineProps({
     },
 });
 
-import { router } from '@inertiajs/vue3';
-import { ref } from 'vue';
-
 function updateTaskStatus(taskId, newStatus) {
-    // Si el nuevo estado es completada, añadir animación
+    // Agregar animación si el nuevo estado es completada
     if (newStatus === 'completada') {
         const taskElement = document.querySelector(`[data-task-id="${taskId}"]`);
         if (taskElement) {
@@ -34,10 +32,43 @@ function updateTaskStatus(taskId, newStatus) {
         }
     }
 
-    router.patch(route('tasks.updateStatus', taskId), { status: newStatus }, {
-        preserveState: true,
-        replace: true,
-    });
+    // Enviar solicitud PATCH al backend para actualizar el estado
+    router.patch(route('tasks.updateStatus', taskId),
+        { status: newStatus },
+        {
+            preserveState: true,
+            preserveScroll: true,
+            preserveComponent: true,
+            onSuccess: () => {
+                // Actualizar localmente la tarea en el array
+                const taskIndex = tasksLocal.value.findIndex(task => task.id === taskId);
+                if (taskIndex !== -1) {
+                    tasksLocal.value[taskIndex].status = newStatus;
+                }
+
+                // Filtrar las tareas localmente según el filtro activo
+                filterTasksLocally();
+            },
+            onError: (errors) => {
+                // Error al actualizar estado
+            }
+        }
+    );
+}
+
+function filterTasksLocally() {
+    // Filtrar las tareas locales según el filtro activo
+    if (selectedStatus.value && selectedStatus.value !== '') {
+        // Si hay un filtro activo, quitar las tareas que ya no corresponden
+        tasksLocal.value = tasksLocal.value.filter(task => task.status === selectedStatus.value);
+    }
+    // Si no hay filtro activo (''), no necesitamos hacer nada adicional
+    // porque la tarea ya fue actualizada en el array local
+}
+
+function setStatus(val) {
+    selectedStatus.value = val;
+    handleFilterChange();
 }
 
 const statusOptions = [
@@ -47,12 +78,35 @@ const statusOptions = [
     { value: 'completada', label: 'Completada' },
 ];
 
-const selectedStatus = ref(props.filterStatus || '');
+let selectedStatus = ref('');
+if (typeof props.filterStatus === 'string') {
+    selectedStatus.value = props.filterStatus;
+}
 const showDeleteModal = ref(false);
 const taskToDelete = ref(null);
 
+// Copia reactiva local de tareas
+const tasksLocal = ref([...props.tasks]);
+
+// Sincronizar tasksLocal cuando cambian los props
+watch(() => props.tasks, (newTasks) => {
+    tasksLocal.value = [...newTasks];
+});
+
 function handleFilterChange() {
-    router.get(route('tasks.index'), { status: selectedStatus.value }, { preserveState: true, replace: true });
+    router.get(route('tasks.index'), { status: selectedStatus.value }, {
+        preserveState: true,
+        preserveScroll: true,
+        preserveComponent: true,
+        only: ['tasks', 'filterStatus'],
+        replace: true,
+        onStart: () => {
+            // Opcional: mostrar indicador de carga
+        },
+        onFinish: () => {
+            // Opcional: ocultar indicador de carga
+        }
+    });
 }
 
 function openDeleteModal(task) {
@@ -63,14 +117,41 @@ function openDeleteModal(task) {
 function closeDeleteModal() {
     showDeleteModal.value = false;
     taskToDelete.value = null;
+    // Resetear cualquier estado de carga en el modal
+    setTimeout(() => {
+        // Forzar re-render del modal para resetear isDeleting
+        // Modal cerrado y estado reseteado
+    }, 100);
 }
 
 function confirmDelete() {
     if (taskToDelete.value) {
-        router.delete(route('tasks.destroy', taskToDelete.value.id), {
+        const taskId = taskToDelete.value.id;
+        router.delete(route('tasks.destroy', taskId), {
             preserveState: true,
+            preserveScroll: true,
+            preserveComponent: true,
+            replace: true,
+            onStart: () => {
+                // Iniciando eliminación
+            },
             onSuccess: () => {
+                // Remover la tarea del array local
+                const taskIndex = tasksLocal.value.findIndex(task => task.id === taskId);
+                if (taskIndex !== -1) {
+                    tasksLocal.value.splice(taskIndex, 1);
+                }
+
                 closeDeleteModal();
+            },
+            onFinish: () => {
+                // Asegurar que el modal se resetee
+                if (showDeleteModal.value) {
+                    closeDeleteModal();
+                }
+            },
+            onError: (errors) => {
+                // Error al eliminar tarea
             }
         });
     }
@@ -81,7 +162,7 @@ function confirmDelete() {
     <Head title="Mis Tareas" />
     <AuthenticatedLayout>
         <template #header>
-            <div class="flex flex-col gap-2">
+            <div class="flex flex-col gap-4">
                 <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0 flex-wrap w-full">
                     <div class="flex items-center gap-2 flex-wrap justify-center sm:justify-start w-full sm:w-auto">
                         <FontAwesomeIcon icon="fa-solid fa-list-check" class="text-fuchsia-600 dark:text-blue-400 h-8 w-8 drop-shadow-lg animate-bounce" />
@@ -95,16 +176,46 @@ function confirmDelete() {
                 <div class="flex items-center justify-center sm:justify-start w-full">
                     <span class="text-gray-500 dark:text-gray-300 text-center sm:text-left">Aquí puedes gestionar tus tareas personales.</span>
                 </div>
+                <!-- Filtro tipo tabs -->
+                <div class="flex flex-row gap-2 justify-center sm:justify-start mt-2 flex-wrap">
+                    <button
+                        v-for="opt in statusOptions"
+                        :key="opt.value"
+                        @click="setStatus(opt.value)"
+                        :class="[
+                            'flex items-center gap-2 px-4 py-2 rounded-full font-semibold border transition-all duration-200',
+                            selectedStatus.value === opt.value
+                                ? 'bg-blue-600 text-white border-blue-600 shadow-lg scale-105'
+                                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-300 hover:bg-gray-900 hover:scale-105'
+                        ].filter(c => !(selectedStatus.value === opt.value && c.includes('bg-gray'))).join(' ')"
+                    >
+                        <FontAwesomeIcon
+                                :icon="
+                                    opt.value === 'pendiente' ? 'fa-solid fa-clock'
+                                    : opt.value === 'en_progreso' ? 'fa-solid fa-spinner'
+                                    : opt.value === 'completada' ? 'fa-solid fa-check-circle'
+                                    : 'fa-solid fa-list-check'
+                                "
+                                :class="[
+                                    selectedStatus === opt.value
+                                        ? (opt.value === 'completada' ? 'animate-check-bounce'
+                                          : opt.value === 'en_progreso' ? 'text-blue-300 animate-spin'
+                                          : opt.value === 'pendiente' ? 'text-yellow-300 animate-clock-tick'
+                                          : 'text-white')
+                                        : opt.value === 'pendiente' ? 'text-yellow-500'
+                                        : opt.value === 'en_progreso' ? 'text-blue-500'
+                                        : opt.value === 'completada' ? 'text-green-500'
+                                        : 'text-fuchsia-500'
+                                ]"
+                        />
+                        {{ opt.label }}
+                    </button>
+                </div>
             </div>
         </template>
         <div class="w-full max-w-2xl mx-auto bg-white/90 dark:bg-gray-900/90 rounded-3xl shadow-2xl p-4 sm:p-8 mt-4 sm:mt-6 border-4 border-blue-400 dark:border-fuchsia-700">
-            <div class="mb-4 flex flex-col sm:flex-row gap-2 sm:gap-4 items-center justify-between">
-                <label class="font-semibold text-gray-700 dark:text-gray-200">Filtrar por estado:</label>
-                <select v-model="selectedStatus" @change="handleFilterChange" class="rounded-lg border-gray-300 dark:bg-gray-800 dark:text-white px-4 py-2 focus:ring focus:ring-blue-400">
-                    <option v-for="opt in statusOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
-                </select>
-            </div>
-            <div v-if="tasks.length === 0" class="text-gray-500 dark:text-gray-300 text-center py-8">
+            <!-- Filtro desplegable eliminado, solo filtro tipo tabs arriba -->
+            <div v-if="tasksLocal.length === 0" class="text-gray-500 dark:text-gray-300 text-center py-8">
                 <FontAwesomeIcon icon="fa-solid fa-circle-info" class="text-blue-400 text-3xl mb-2" />
                 <div>No tienes tareas registradas.</div>
             </div>
@@ -112,7 +223,7 @@ function confirmDelete() {
                 Haz clic en cualquier tarjeta para ver los detalles de la tarea.
             </div>
             <ul class="divide-y divide-gray-200 dark:divide-gray-700">
-                <li v-for="task in tasks" :key="task.id" :data-task-id="task.id" class="py-4 flex flex-col gap-2 sm:gap-1 cursor-pointer group relative" @click="router.get(route('tasks.show', task.id), {}, { preserveState: true })">
+                <li v-for="task in tasksLocal" :key="task.id" :data-task-id="task.id" class="py-4 flex flex-col gap-2 sm:gap-1 cursor-pointer group relative" @click="router.get(route('tasks.show', task.id), {}, { preserveState: true })">
                     <!-- Botones editar y eliminar en la esquina superior derecha, con margen para no superponerse -->
                     <div class="absolute top-4 right-4 flex flex-row gap-2 z-10" @click.stop>
                         <Link :href="route('tasks.edit', task.id)" class="flex items-center px-3 py-2 bg-blue-600 text-white rounded-xl shadow hover:bg-blue-700 text-sm font-semibold justify-center">
@@ -183,6 +294,7 @@ function confirmDelete() {
 
         <!-- Modal de confirmación de eliminación -->
         <DeleteModal
+            :key="taskToDelete?.id || 'modal'"
             :show="showDeleteModal"
             :task="taskToDelete"
             @close="closeDeleteModal"
@@ -217,5 +329,33 @@ function confirmDelete() {
 
 .animate-completion {
     animation: completion-bounce 1s ease-in-out;
+}
+
+@keyframes check-bounce {
+  0% { transform: scale(1) rotate(0deg); }
+  25% { transform: scale(1.2) rotate(-5deg); }
+  50% { transform: scale(1.4) rotate(5deg); }
+  75% { transform: scale(1.1) rotate(-2deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+.animate-check-bounce {
+  animation: check-bounce 1s ease-in-out infinite !important;
+  filter: drop-shadow(0 0 10px #10b981) brightness(1.8) !important;
+  color: #10b981 !important;
+}
+
+@keyframes clock-tick {
+  0% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(5deg) scale(1.1); }
+  50% { transform: rotate(-5deg) scale(1.2); }
+  75% { transform: rotate(3deg) scale(1.1); }
+  100% { transform: rotate(0deg) scale(1); }
+}
+
+.animate-clock-tick {
+  animation: clock-tick 2s ease-in-out infinite !important;
+  filter: drop-shadow(0 0 8px #f59e0b) brightness(1.6) !important;
+  color: #f59e0b !important;
 }
 </style>

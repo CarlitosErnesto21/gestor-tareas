@@ -68,8 +68,7 @@ class RegisteredUserController extends Controller
 
         event(new Registered($user));
 
-        Auth::login($user);
-
-        return redirect(route('dashboard', absolute: false));
+        // No hacer login automático - el usuario debe verificar su email primero
+        return redirect(route('login'))->with('status', 'Registro exitoso. Por favor, revisa tu email para verificar tu cuenta antes de iniciar sesión.');
     }
 }
