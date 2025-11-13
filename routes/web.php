@@ -15,6 +15,15 @@ Route::get('/', function () {
     ]);
 });
 
+// Endpoint simple de salud para Railway
+Route::get('/health', function () {
+    return response()->json([
+        'status' => 'ok',
+        'timestamp' => now(),
+        'app' => 'gestor-tareas'
+    ]);
+});
+
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');

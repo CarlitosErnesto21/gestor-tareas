@@ -5,8 +5,8 @@
     "buildCommand": "npm run build && mkdir -p storage/framework/{sessions,views,cache,testing} storage/logs bootstrap/cache && chmod -R a+rw storage"
   },
   "deploy": {
-    "startCommand": "echo 'Starting Laravel application...' && echo 'Environment: '$APP_ENV && echo 'Debug: '$APP_DEBUG && echo 'Database: '$DB_HOST':'$DB_PORT && php artisan config:clear && echo 'Running migrations...' && php artisan migrate --force --verbose && echo 'Starting server on port: '$PORT && php artisan serve --host=0.0.0.0 --port=${PORT:-8000} --verbose",
-    "healthcheckPath": "/",
+    "startCommand": "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=${PORT:-8000}",
+    "healthcheckPath": "/health",
     "healthcheckTimeout": 300,
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
