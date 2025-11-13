@@ -28,11 +28,11 @@ Route::get('/health', function () {
 // Debug route - no dependencies
 Route::get('/debug', function () {
     try {
-        return response('Laravel is working! PHP ' . PHP_VERSION, 200)
-            ->header('Content-Type', 'text/plain');
+        return response('<h1>Laravel is working!</h1><p>PHP ' . PHP_VERSION . '</p>', 200)
+            ->header('Content-Type', 'text/html');
     } catch (\Throwable $e) {
-        return response('ERROR: ' . $e->getMessage() . ' | File: ' . $e->getFile() . ' | Line: ' . $e->getLine(), 500)
-            ->header('Content-Type', 'text/plain');
+        return response('<h1>ERROR</h1><p>' . $e->getMessage() . '</p><p>File: ' . $e->getFile() . '</p><p>Line: ' . $e->getLine() . '</p>', 500)
+            ->header('Content-Type', 'text/html');
     }
 });
 
