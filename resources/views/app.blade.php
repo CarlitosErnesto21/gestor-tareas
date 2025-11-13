@@ -14,14 +14,33 @@
         @routes
         @if(app()->environment('production'))
             @php
-                $manifestPath = public_path('build/.vite/manifest.json');
-                if(file_exists($manifestPath)) {
-                    $manifest = json_decode(file_get_contents($manifestPath), true);
-                    $entrypoint = $manifest['resources/js/app.js'];
-                    $cssFiles = $entrypoint['css'] ?? [];
-                    $jsFile = $entrypoint['file'];
-                    $vendorFile = $manifest['_vendor-CPZB69Mu.js']['file'] ?? null;
-                } else {
+                try {
+                    $manifestPath = public_path('build/.vite/manifest.json');
+                    if(file_exists($manifestPath)) {
+                        $manifest = json_decode(file_get_contents($manifestPath), true);
+                        $entrypoint = $manifest['resources/js/app.js'];
+                        $cssFiles = $entrypoint['css'] ?? [];
+                        $jsFile = $entrypoint['file'];
+                        $vendorFile = $manifest['_vendor-CPZB69Mu.js']['file'] ?? null;
+                    } else {
+                        // Fallback: buscar archivos directamente
+                        $buildFiles = glob(public_path('build/assets/*'));
+                        $cssFiles = [];
+                        $jsFile = null;
+                        $vendorFile = null;
+
+                        foreach($buildFiles as $file) {
+                            $filename = basename($file);
+                            if(str_contains($filename, 'app-') && str_ends_with($filename, '.js')) {
+                                $jsFile = 'assets/' . $filename;
+                            } elseif(str_contains($filename, 'vendor-') && str_ends_with($filename, '.js')) {
+                                $vendorFile = 'assets/' . $filename;
+                            } elseif(str_contains($filename, 'app-') && str_ends_with($filename, '.css')) {
+                                $cssFiles[] = 'assets/' . $filename;
+                            }
+                        }
+                    }
+                } catch (Exception $e) {
                     $cssFiles = [];
                     $jsFile = null;
                     $vendorFile = null;
