@@ -8,10 +8,12 @@ composer install --no-dev --optimize-autoloader
 npm ci
 npm run build
 
-# Generate application key
-php artisan key:generate --force
+# Create necessary directories
+mkdir -p storage/framework/{sessions,views,cache,testing} storage/logs bootstrap/cache
+chmod -R a+rw storage
 
-# Run migrations
-php artisan migrate --force
+# Cache optimization (commands that don't require DB)
+php artisan route:cache
+php artisan view:cache
 
 echo "✅ Build completed!"
