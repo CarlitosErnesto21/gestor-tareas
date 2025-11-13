@@ -1,0 +1,28 @@
+{
+    auto_https off
+    admin off
+}
+
+:80 {
+    root * public
+    encode gzip
+
+    # Handle static files
+    @static {
+        path *.css *.js *.png *.jpg *.jpeg *.gif *.svg *.ico *.woff *.woff2 *.ttf *.eot
+    }
+    handle @static {
+        header Cache-Control "public, max-age=31536000"
+        file_server
+    }
+
+    # Handle build assets
+    handle /build/* {
+        header Cache-Control "public, max-age=31536000"
+        file_server
+    }
+
+    # Handle PHP
+    php_fastcgi unix//tmp/frankenphp.sock
+    file_server
+}

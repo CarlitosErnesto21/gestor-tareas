@@ -2,7 +2,7 @@
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "RAILPACK",
-    "buildCommand": "npm run build && mkdir -p storage/framework/{sessions,views,cache,testing} storage/logs bootstrap/cache && chmod -R a+rw storage"
+    "buildCommand": "npm run build && mkdir -p storage/framework/{sessions,views,cache,testing} storage/logs bootstrap/cache && chmod -R 777 storage public/build && ls -la public/build/ || echo 'No build folder'"
   },
   "deploy": {
     "startCommand": "chmod -R 777 storage bootstrap/cache && php artisan config:clear && php artisan route:clear && php artisan view:clear && php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan migrate --force && frankenphp run --config /Caddyfile",
