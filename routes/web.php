@@ -27,8 +27,13 @@ Route::get('/health', function () {
 
 // Debug route - no dependencies
 Route::get('/debug', function () {
-    return response('Laravel is working! PHP ' . PHP_VERSION, 200)
-        ->header('Content-Type', 'text/plain');
+    try {
+        return response('Laravel is working! PHP ' . PHP_VERSION, 200)
+            ->header('Content-Type', 'text/plain');
+    } catch (\Throwable $e) {
+        return response('ERROR: ' . $e->getMessage() . ' | File: ' . $e->getFile() . ' | Line: ' . $e->getLine(), 500)
+            ->header('Content-Type', 'text/plain');
+    }
 });
 
 // Test database connection
@@ -39,6 +44,25 @@ Route::get('/test-db', function () {
             ->header('Content-Type', 'text/plain');
     } catch (\Exception $e) {
         return response('Database error: ' . $e->getMessage(), 500)
+            ->header('Content-Type', 'text/plain');
+    }
+});
+
+// Check Laravel environment
+Route::get('/env-check', function () {
+    try {
+        $info = [
+            'APP_ENV: ' . config('app.env'),
+            'APP_DEBUG: ' . (config('app.debug') ? 'true' : 'false'),
+            'APP_KEY set: ' . (config('app.key') ? 'YES' : 'NO'),
+            'DB_HOST: ' . config('database.connections.mysql.host'),
+            'Storage writable: ' . (is_writable(storage_path()) ? 'YES' : 'NO'),
+            'Bootstrap cache writable: ' . (is_writable(base_path('bootstrap/cache')) ? 'YES' : 'NO'),
+        ];
+        return response(implode("\n", $info), 200)
+            ->header('Content-Type', 'text/plain');
+    } catch (\Throwable $e) {
+        return response('ENV-CHECK ERROR: ' . $e->getMessage(), 500)
             ->header('Content-Type', 'text/plain');
     }
 });
