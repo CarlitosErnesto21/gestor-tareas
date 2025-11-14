@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -64,15 +65,23 @@ class RegisteredUserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'email_verified_at' => now(), // Marcar como verificado automáticamente
         ]);
 
-        // Comentamos el evento para evitar envío de email
-        // event(new Registered($user));
+        try {
+            // Disparar evento en una cola para evitar timeouts
+            event(new Registered($user));
 
-        // Hacer login automático después del registro
-        Auth::login($user);
+            // Mensaje de éxito
+            $message = 'Registro exitoso. Por favor, revisa tu email para verificar tu cuenta antes de iniciar sesión.';
+        } catch (\Exception $e) {
+            // Log del error pero continúa el proceso
+            Log::error('Error enviando email de verificación: ' . $e->getMessage());
 
-        return redirect(route('dashboard'))->with('status', 'Registro exitoso. ¡Bienvenido!');
+            // Mensaje alternativo si hay problemas con el email
+            $message = 'Registro exitoso. Estamos teniendo problemas temporales con el envío de emails. Puedes contactar al administrador para verificar tu cuenta manualmente.';
+        }
+
+        // No hacer login automático - el usuario debe verificar su email primero
+        return redirect(route('login'))->with('status', $message);
     }
 }
