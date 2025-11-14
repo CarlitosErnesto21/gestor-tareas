@@ -64,11 +64,15 @@ class RegisteredUserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'email_verified_at' => now(), // Marcar como verificado automáticamente
         ]);
 
-        event(new Registered($user));
+        // Comentamos el evento para evitar envío de email
+        // event(new Registered($user));
 
-        // No hacer login automático - el usuario debe verificar su email primero
-        return redirect(route('login'))->with('status', 'Registro exitoso. Por favor, revisa tu email para verificar tu cuenta antes de iniciar sesión.');
+        // Hacer login automático después del registro
+        Auth::login($user);
+
+        return redirect(route('dashboard'))->with('status', 'Registro exitoso. ¡Bienvenido!');
     }
 }
