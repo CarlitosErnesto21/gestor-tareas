@@ -67,21 +67,12 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        try {
-            // Disparar evento en una cola para evitar timeouts
+        // Disparar evento de forma asíncrona para evitar bloqueos
+        dispatch(function () use ($user) {
             event(new Registered($user));
+        })->afterResponse();
 
-            // Mensaje de éxito
-            $message = 'Registro exitoso. Por favor, revisa tu email para verificar tu cuenta antes de iniciar sesión.';
-        } catch (\Exception $e) {
-            // Log del error pero continúa el proceso
-            Log::error('Error enviando email de verificación: ' . $e->getMessage());
-
-            // Mensaje alternativo si hay problemas con el email
-            $message = 'Registro exitoso. Estamos teniendo problemas temporales con el envío de emails. Puedes contactar al administrador para verificar tu cuenta manualmente.';
-        }
-
-        // No hacer login automático - el usuario debe verificar su email primero
-        return redirect(route('login'))->with('status', $message);
+        // Redirigir inmediatamente
+        return redirect(route('login'))->with('status', 'Registro exitoso. Por favor, revisa tu email para verificar tu cuenta antes de iniciar sesión.');
     }
 }
