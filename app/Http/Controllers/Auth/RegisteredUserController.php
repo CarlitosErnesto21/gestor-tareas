@@ -65,14 +65,12 @@ class RegisteredUserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'email_verified_at' => now(), // Marcar como verificado inmediatamente
         ]);
 
-        // Disparar evento de forma asíncrona para evitar bloqueos
-        dispatch(function () use ($user) {
-            event(new Registered($user));
-        })->afterResponse();
+        // Iniciar sesión automáticamente
+        Auth::login($user);
 
-        // Redirigir inmediatamente
-        return redirect(route('login'))->with('status', 'Registro exitoso. Por favor, revisa tu email para verificar tu cuenta antes de iniciar sesión.');
+        return redirect(route('dashboard'))->with('status', 'Registro exitoso. ¡Bienvenido!');
     }
 }
